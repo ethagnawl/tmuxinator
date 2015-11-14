@@ -36,19 +36,7 @@ describe Tmuxinator::Cli do
 
     it "lists the commands" do
       out, _err = capture_io { cli.start }
-      expected = %w(commands
-                    completions
-                    new
-                    open
-                    start
-                    local
-                    debug
-                    copy
-                    delete
-                    implode
-                    version
-                    doctor
-                    list)
+      expected = Tmuxinator::Cli::COMMANDS.keys
       expect(out).to eq "#{expected.join("\n")}\n"
     end
   end
