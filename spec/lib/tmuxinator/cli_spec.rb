@@ -292,6 +292,12 @@ describe Tmuxinator::Cli do
       end
     end
 
+    context "local project exists" do
+      it "deletes the local project" do
+        expect(true).to equal false
+      end
+    end
+
     context "project doesn't exist" do
       before do
         allow(Tmuxinator::Config).to receive(:exists?) { false }

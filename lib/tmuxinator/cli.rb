@@ -186,7 +186,7 @@ module Tmuxinator
 
     def delete(project)
       if Tmuxinator::Config.exists?(project)
-        config = "#{Tmuxinator::Config.root}/#{project}.yml"
+        config = "#{Tmuxinator::Config.project(project)}"
 
         if yes?("Are you sure you want to delete #{project}?(y/n)", :red)
           FileUtils.rm(config)
