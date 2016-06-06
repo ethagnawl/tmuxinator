@@ -4,6 +4,7 @@ require "shellwords"
 require "thor"
 require "thor/version"
 
+require "tmuxinator/analytics"
 require "tmuxinator/util"
 require "tmuxinator/deprecations"
 require "tmuxinator/wemux_support"
