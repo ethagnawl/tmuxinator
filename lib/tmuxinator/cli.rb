@@ -1,3 +1,5 @@
+require 'pry'
+
 module Tmuxinator
   class Cli < Thor
     # By default, Thor returns exit(0) when an error occurs.
@@ -99,13 +101,15 @@ module Tmuxinator
         attach_opt = project_options[:attach]
         attach = !attach_opt.nil? && attach_opt ? true : false
         detach = !attach_opt.nil? && !attach_opt ? true : false
+        local = project_options.fetch(:local, false)
 
         options = {
+          args: project_options[:args],
+          custom_name: project_options[:custom_name],
           force_attach: attach,
           force_detach: detach,
-          name: project_options[:name],
-          custom_name: project_options[:custom_name],
-          args: project_options[:args]
+          local: local,
+          name: project_options[:name]
         }
 
         begin
@@ -138,14 +142,22 @@ module Tmuxinator
                            desc: "Attach to tmux session after creation."
     method_option :name, aliases: "-n",
                          desc: "Give the session a different name"
+    method_option :local, type: :boolean,
+                          aliases: ["-l"],
+                          desc: "Start local project using file at ./.tmuxinator.yml"
 
-    def start(name, *args)
+    def start(name = nil, *args)
+      attach = options[:attach]
+      custom_name = options[:name]
+      local = options.fetch("local", false)
       params = {
-        name: name,
-        custom_name: options[:name],
-        attach: options[:attach],
-        args: args
+        args: args,
+        attach: attach,
+        custom_name: custom_name,
+        local: local,
+        name: name
       }
+
       project = create_project(params)
       render_project(project)
     end
@@ -165,7 +177,15 @@ module Tmuxinator
     map "." => :local
 
     def local
-      render_project(create_project(attach: options[:attach]))
+      attach = options[:attach]
+      local = true
+      params = {
+        attach: attach,
+        local: local
+      }
+      project = create_project(params)
+
+      render_project(project)
     end
 
     method_option :attach, type: :boolean,
