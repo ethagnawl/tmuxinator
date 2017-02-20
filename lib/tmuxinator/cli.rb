@@ -12,6 +12,7 @@ module Tmuxinator
       commands: "Lists commands available in tmuxinator",
       completions: "Used for shell completion",
       new: "Create a new project file and open it in your editor",
+      n: "Alias of new",
       edit: "Alias of new",
       open: "Alias of new",
       start: %w{
@@ -63,17 +64,29 @@ module Tmuxinator
     map "edit" => :new
     map "o" => :new
     map "e" => :new
-    map "n" => :new
     method_option :local, type: :boolean,
                           aliases: ["-l"],
                           desc: "Create local project file at ./.tmuxinator.yml"
 
     def new(name)
-      project_file = find_project_file(name, options[:local])
-      Kernel.system("$EDITOR #{project_file}") || doctor
+      _new name
+    end
+
+    desc "n [PROJECT]", COMMANDS[:new]
+    method_option :local, type: :boolean,
+                          aliases: ["-l"],
+                          desc: "Create local project file at ./.tmuxinator.yml"
+
+    def n(name)
+      _new name
     end
 
     no_commands do
+      def _new(name)
+        project_file = find_project_file(name, options[:local])
+        Kernel.system("$EDITOR #{project_file}") || doctor
+      end
+
       def find_project_file(name, local = false)
         path = if local
                  Tmuxinator::Config::LOCAL_DEFAULT

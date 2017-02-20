@@ -40,6 +40,7 @@ describe Tmuxinator::Cli do
       expected = %w(commands
                     completions
                     new
+                    n
                     edit
                     open
                     start
@@ -207,74 +208,84 @@ describe Tmuxinator::Cli do
     end
   end
 
-  describe "#new" do
-    let(:file) { StringIO.new }
-    let(:name) { "test" }
+  describe "new" do
+    shared_examples_for "new" do |method_name|
+      let(:file) { StringIO.new }
+      let(:name) { "test" }
 
-    before do
-      allow(File).to receive(:open) { |&block| block.yield file }
-    end
-
-    context "without the --local option" do
       before do
-        ARGV.replace(["new", name])
+        allow(File).to receive(:open) { |&block| block.yield file }
       end
 
-      context "existing project doesn't exist" do
+      context "without the --local option" do
         before do
-          expect(File).to receive_messages(exist?: false)
+          ARGV.replace([method_name, name])
         end
 
-        it "creates a new tmuxinator project file" do
-          capture_io { cli.start }
-          expect(file.string).to_not be_empty
-        end
-      end
+        context "existing project doesn't exist" do
+          before do
+            expect(File).to receive_messages(exist?: false)
+          end
 
-      context "files exists" do
-        let(:root_path) { "#{ENV['HOME']}\/\.tmuxinator\/#{name}\.yml" }
-
-        before do
-          allow(File).to receive(:exist?).with(anything).and_return(false)
-          expect(File).to receive(:exist?).with(root_path).and_return(true)
-        end
-
-        it "just opens the file" do
-          expect(Kernel).to receive(:system).with(%r{#{root_path}})
-          capture_io { cli.start }
-        end
-      end
-    end
-
-    context "with the --local option" do
-      before do
-        ARGV.replace ["new", name, "--local"]
-      end
-
-      context "existing project doesn't exist" do
-        before do
-          allow(File).to receive(:exist?).at_least(:once) do
-            false
+          it "creates a new tmuxinator project file" do
+            capture_io { cli.start }
+            expect(file.string).to_not be_empty
           end
         end
 
-        it "creates a new tmuxinator project file" do
-          capture_io { cli.start }
-          expect(file.string).to_not be_empty
+        context "files exists" do
+          let(:root_path) { "#{ENV['HOME']}\/\.tmuxinator\/#{name}\.yml" }
+
+          before do
+            allow(File).to receive(:exist?).with(anything).and_return(false)
+            expect(File).to receive(:exist?).with(root_path).and_return(true)
+          end
+
+          it "just opens the file" do
+            expect(Kernel).to receive(:system).with(%r{#{root_path}})
+            capture_io { cli.start }
+          end
         end
       end
 
-      context "files exists" do
-        let(:path) { Tmuxinator::Config::LOCAL_DEFAULT }
+      context "with the --local option" do
         before do
-          expect(File).to receive(:exist?).with(path) { true }
+          ARGV.replace [method_name, name, "--local"]
         end
 
-        it "just opens the file" do
-          expect(Kernel).to receive(:system).with(%r{#{path}})
-          capture_io { cli.start }
+        context "existing project doesn't exist" do
+          before do
+            allow(File).to receive(:exist?).at_least(:once) do
+              false
+            end
+          end
+
+          it "creates a new tmuxinator project file" do
+            capture_io { cli.start }
+            expect(file.string).to_not be_empty
+          end
+        end
+
+        context "files exists" do
+          let(:path) { Tmuxinator::Config::LOCAL_DEFAULT }
+          before do
+            expect(File).to receive(:exist?).with(path) { true }
+          end
+
+          it "just opens the file" do
+            expect(Kernel).to receive(:system).with(%r{#{path}})
+            capture_io { cli.start }
+          end
         end
       end
+    end
+
+    describe "#new" do
+      it_behaves_like "new", "new"
+    end
+
+    describe "#n" do
+      it_behaves_like "new", "n"
     end
   end
 
