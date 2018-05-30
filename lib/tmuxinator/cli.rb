@@ -230,7 +230,15 @@ module Tmuxinator
     desc "stop [PROJECT]", COMMANDS[:stop]
     map "st" => :stop
 
-    def stop(name)
+    def stop(name = nil)
+      # Will wantonly kill most recently created tmuxinator session if run
+      # outside session. Seems reasonable?
+      # Will fail with "Project foo-1 doesn't exist." if run against named tmux
+      # session -- probably fine.
+      # Where does this helper live?
+      # Can it always be called safely?
+      maybe_session_name = `tmux display-message -p '\#{session_name}' 2> /dev/null`.chomp
+      name = !maybe_session_name.empty? ? maybe_session_name : nil
       params = {
         name: name
       }
